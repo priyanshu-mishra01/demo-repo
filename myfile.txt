@@ -1,3 +1,6 @@
+# Let's create the required content for each file and save it into a single text file.
+
+project_files_content = """
 File: src/main/java/com/example/studentmanagement/StudentManagementApplication.java
 ---
 package com.example.studentmanagement;
@@ -43,7 +46,7 @@ File: src/main/java/com/example/studentmanagement/controller/StudentController.j
 ---
 package com.example.studentmanagement.controller;
 
-import com.example.studentmanagement.dto.StudentDTO;
+import com.example.studentmanagement.entity.Subject;
 import com.example.studentmanagement.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -54,249 +57,43 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/students")
 public class StudentController {
+
     @Autowired
     private StudentService studentService;
 
-    @PostMapping
-    public ResponseEntity<StudentDTO> createStudent(@RequestBody StudentDTO studentDTO) {
-        return ResponseEntity.ok(studentService.createStudent(studentDTO));
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<StudentDTO> getStudent(@PathVariable Long id) {
-        return ResponseEntity.ok(studentService.getStudentById(id));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<StudentDTO>> getAllStudents() {
-        return ResponseEntity.ok(studentService.getAllStudents());
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<StudentDTO> updateStudent(@PathVariable Long id, @RequestBody StudentDTO studentDTO) {
-        return ResponseEntity.ok(studentService.updateStudent(id, studentDTO));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
-        studentService.deleteStudent(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/{id}/subjects")
-    public ResponseEntity<List<String>> getStudentSubjects(@PathVariable Long id) {
-        return ResponseEntity.ok(studentService.getStudentSubjects(id));
+    public ResponseEntity<List<Subject>> getStudentSubjects(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getSubjects(id));
     }
 
     @GetMapping("/{id}/elective")
-    public ResponseEntity<String> getStudentElectiveSubject(@PathVariable Long id) {
-        return ResponseEntity.ok(studentService.getStudentElectiveSubject(id));
+    public ResponseEntity<Subject> getElectiveSubject(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getElectiveSubject(id));
     }
 }
 
 ---
-File: src/main/java/com/example/studentmanagement/controller/SubjectController.java
+File: src/main/java/com/example/studentmanagement/entity/Student.java
 ---
-package com.example.studentmanagement.controller;
+package com.example.studentmanagement.entity;
 
-import com.example.studentmanagement.dto.SubjectDTO;
-import com.example.studentmanagement.service.SubjectService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/subjects")
-public class SubjectController {
-    @Autowired
-    private SubjectService subjectService;
-
-    @PostMapping
-    public ResponseEntity<SubjectDTO> createSubject(@RequestBody SubjectDTO subjectDTO) {
-        return ResponseEntity.ok(subjectService.createSubject(subjectDTO));
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<SubjectDTO> getSubject(@PathVariable Long id) {
-        return ResponseEntity.ok(subjectService.getSubjectById(id));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<SubjectDTO>> getAllSubjects() {
-        return ResponseEntity.ok(subjectService.getAllSubjects());
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<SubjectDTO> updateSubject(@PathVariable Long id, @RequestBody SubjectDTO subjectDTO) {
-        return ResponseEntity.ok(subjectService.updateSubject(id, subjectDTO));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSubject(@PathVariable Long id) {
-        subjectService.deleteSubject(id);
-        return ResponseEntity.noContent().build();
-    }
-}
-
----
-File: src/main/java/com/example/studentmanagement/controller/MentorController.java
----
-package com.example.studentmanagement.controller;
-
-import com.example.studentmanagement.dto.MentorDTO;
-import com.example.studentmanagement.service.MentorService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/mentors")
-public class MentorController {
-    @Autowired
-    private MentorService mentorService;
-
-    @PostMapping
-    public ResponseEntity<MentorDTO> createMentor(@RequestBody MentorDTO mentorDTO) {
-        return ResponseEntity.ok(mentorService.createMentor(mentorDTO));
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<MentorDTO> getMentor(@PathVariable Long id) {
-        return ResponseEntity.ok(mentorService.getMentorById(id));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<MentorDTO>> getAllMentors() {
-        return ResponseEntity.ok(mentorService.getAllMentors());
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<MentorDTO> updateMentor(@PathVariable Long id, @RequestBody MentorDTO mentorDTO) {
-        return ResponseEntity.ok(mentorService.updateMentor(id, mentorDTO));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMentor(@PathVariable Long id) {
-        mentorService.deleteMentor(id);
-        return ResponseEntity.noContent().build();
-    }
-}
-
----
-File: src/main/java/com/example/studentmanagement/dto/StudentDTO.java
----
-package com.example.studentmanagement.dto;
-
-import java.time.LocalDate;
-import java.util.List;
-
-public class StudentDTO {
-    private Long id;
-    private String firstName;
-    private String lastName;
-    private LocalDate dateOfBirth;
-    private List<String> subjectNames;
-    private String electiveSubjectName;
-    private String mentorName;
-
-    // Getters and setters
-}
-
----
-File: src/main/java/com/example/studentmanagement/dto/SubjectDTO.java
----
-package com.example.studentmanagement.dto;
-
-public class SubjectDTO {
-    private Long id;
-    private String subjectCode;
-    private String subjectName;
-
-    // Getters and setters
-}
-
----
-File: src/main/java/com/example/studentmanagement/dto/MentorDTO.java
----
-package com.example.studentmanagement.dto;
-
-public class MentorDTO {
-    private Long id;
-    private String name;
-    private String phoneNumber;
-
-    // Getters and setters
-}
-
----
-File: src/main/java/com/example/studentmanagement/mapper/StudentMapper.java
----
-package com.example.studentmanagement.mapper;
-
-import com.example.studentmanagement.dto.StudentDTO;
-import com.example.studentmanagement.model.Student;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
-@Mapper(componentModel = "spring")
-public interface StudentMapper {
-    @Mapping(target = "subjectNames", expression = "java(student.getSubjects().stream().map(Subject::getSubjectName).collect(java.util.stream.Collectors.toList()))")
-    @Mapping(target = "electiveSubjectName", source = "electiveSubject.subjectName")
-    @Mapping(target = "mentorName", source = "mentor.name")
-    StudentDTO studentToStudentDTO(Student student);
-
-    @Mapping(target = "subjects", ignore = true)
-    @Mapping(target = "electiveSubject", ignore = true)
-    @Mapping(target = "mentor", ignore = true)
-    Student studentDTOToStudent(StudentDTO studentDTO);
-}
-
----
-File: src/main/java/com/example/studentmanagement/mapper/SubjectMapper.java
----
-package com.example.studentmanagement.mapper;
-
-import com.example.studentmanagement.dto.SubjectDTO;
-import com.example.studentmanagement.model.Subject;
-import org.mapstruct.Mapper;
-
-@Mapper(componentModel = "spring")
-public interface SubjectMapper {
-    SubjectDTO subjectToSubjectDTO(Subject subject);
-    Subject subjectDTOToSubject(SubjectDTO subjectDTO);
-}
-
----
-File: src/main/java/com/example/studentmanagement/mapper/MentorMapper.java
----
-package com.example.studentmanagement.mapper;
-
-import com.example.studentmanagement.dto.MentorDTO;
-import com.example.studentmanagement.model.Mentor;
-import org.mapstruct.Mapper;
-
-@Mapper(componentModel = "spring")
-public interface MentorMapper {
-    MentorDTO mentorToMentorDTO(Mentor mentor);
-    Mentor mentorDTOToMentor(MentorDTO mentorDTO);
-}
-
----
-File: src/main/java/com/example/studentmanagement/model/Student.java
----
-package com.example.studentmanagement.model;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Student {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -313,61 +110,71 @@ public class Student {
     @Past
     private LocalDate dateOfBirth;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "student_subjects",
-        joinColumns = @JoinColumn(name = "student_id"),
-        inverseJoinColumns = @JoinColumn(name = "subject_id")
-    )
+    @ManyToMany
+    @JoinTable(name = "student_subjects", joinColumns = @JoinColumn(name = "student_id"), inverseJoinColumns = @JoinColumn(name = "subject_id"))
     @Size(max = 6)
-    private Set<Subject> subjects;
+    private List<Subject> subjects;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "elective_subject_id")
+    @ManyToOne
     private Subject electiveSubject;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mentor_id")
+    @ManyToOne
     private Mentor mentor;
-
-    // Getters and setters
 }
 
 ---
-File: src/main/java/com/example/studentmanagement/model/Subject.java
+File: src/main/java/com/example/studentmanagement/entity/Subject.java
 ---
-package com.example.studentmanagement.model;
+package com.example.studentmanagement.entity;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Subject {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @NotBlank
     @Pattern(regexp = "\\d{6}", message = "Subject code must be a 6-digit number")
     private String subjectCode;
 
     @NotBlank
-    @Size(max = 30, message = "Subject name must not exceed 30 characters")
+    @Size(max = 30)
     private String subjectName;
-
-    // Getters and setters
 }
 
 ---
-File: src/main/java/com/example/studentmanagement/model/Mentor.java
+File: src/main/java/com/example/studentmanagement/entity/Mentor.java
 ---
-package com.example.studentmanagement.model;
+package com.example.studentmanagement.entity;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Mentor {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -379,206 +186,56 @@ public class Mentor {
     @NotBlank
     @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
     private String phoneNumber;
-
-    // Getters and setters
 }
 
 ---
-File: src/main/java/com/example/studentmanagement/repository/StudentRepository.java
----
-package com.example.studentmanagement.repository;
-
-import com.example.studentmanagement.model.Student;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface StudentRepository extends JpaRepository<Student, Long> {
-    Student findByFirstNameAndLastName(String firstName, String lastName);
-}
-
----
-File: src/main/java/com/example/studentmanagement/repository/SubjectRepository.java
----
-package com.example.studentmanagement.repository;
-
-import com.example.studentmanagement.model.Subject;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface SubjectRepository extends JpaRepository<Subject, Long> {
-}
-
----
-File: src/main/java/com/example/studentmanagement/repository/MentorRepository.java
----
-package com.example.studentmanagement.repository;
-
-import com.example.studentmanagement.model.Mentor;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface MentorRepository extends JpaRepository<Mentor, Long> {
-}
-
----
-File: src/main/java/com/example/studentmanagement/service/StudentService.java (continued)
----
-    public void deleteStudent(Long id) {
-        Student student = studentRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-        studentRepository.delete(student);
-    }
-
-    public List<String> getStudentSubjects(Long id) {
-        Student student = studentRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-        return student.getSubjects().stream()
-            .map(Subject::getSubjectName)
-            .collect(Collectors.toList());
-    }
-
-    public String getStudentElectiveSubject(Long id) {
-        Student student = studentRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-        return student.getElectiveSubject() != null ? student.getElectiveSubject().getSubjectName() : null;
-    }
-
-    private void validateAge(LocalDate dateOfBirth) {
-        int age = Period.between(dateOfBirth, LocalDate.now()).getYears();
-        if (age < 4 || age > 30) {
-            throw new ValidationException("Student age must be between 4 and 30 years");
-        }
-    }
-
-    private void validateUniqueFullName(Student student) {
-        Student existingStudent = studentRepository.findByFirstNameAndLastName(
-            student.getFirstName(), student.getLastName());
-        if (existingStudent != null && !existingStudent.getId().equals(student.getId())) {
-            throw new ValidationException("A student with this full name already exists");
-        }
-    }
-}
-
----
-File: src/main/java/com/example/studentmanagement/service/SubjectService.java
+File: src/main/java/com/example/studentmanagement/service/StudentService.java
 ---
 package com.example.studentmanagement.service;
 
-import com.example.studentmanagement.dto.SubjectDTO;
-import com.example.studentmanagement.mapper.SubjectMapper;
-import com.example.studentmanagement.model.Subject;
-import com.example.studentmanagement.repository.SubjectRepository;
+import com.example.studentmanagement.entity.Student;
+import com.example.studentmanagement.entity.Subject;
+import com.example.studentmanagement.repository.StudentRepository;
+import com.example.studentmanagement.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-public class SubjectService {
-    @Autowired
-    private SubjectRepository subjectRepository;
+public class StudentService {
 
     @Autowired
-    private SubjectMapper subjectMapper;
+    private StudentRepository studentRepository;
 
-    public SubjectDTO createSubject(SubjectDTO subjectDTO) {
-        Subject subject = subjectMapper.subjectDTOToSubject(subjectDTO);
-        subject = subjectRepository.save(subject);
-        return subjectMapper.subjectToSubjectDTO(subject);
+    public Student getStudentById(Long id) {
+        return studentRepository.findById(id).orElseThrow(() -> new ValidationException("Student not found"));
     }
 
-    public SubjectDTO getSubjectById(Long id) {
-        Subject subject = subjectRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
-        return subjectMapper.subjectToSubjectDTO(subject);
+    public List<Subject> getSubjects(Long studentId) {
+        Student student = getStudentById(studentId);
+        return student.getSubjects();
     }
 
-    public List<SubjectDTO> getAllSubjects() {
-        return subjectRepository.findAll().stream()
-            .map(subjectMapper::subjectToSubjectDTO)
-            .collect(Collectors.toList());
+    public Subject getElectiveSubject(Long studentId) {
+        Student student = getStudentById(studentId);
+        return student.getElectiveSubject();
     }
 
-    public SubjectDTO updateSubject(Long id, SubjectDTO subjectDTO) {
-        Subject subject = subjectRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
-        // Update subject fields
-        subject = subjectRepository.save(subject);
-        return subjectMapper.subjectToSubjectDTO(subject);
-    }
-
-    public void deleteSubject(Long id) {
-        Subject subject = subjectRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
-        subjectRepository.delete(subject);
+    public Student assignMentor(Long studentId, Mentor mentor) {
+        Student student = getStudentById(studentId);
+        student.setMentor(mentor);
+        return studentRepository.save(student);
     }
 }
 
 ---
-File: src/main/java/com/example/studentmanagement/service/MentorService.java
----
-package com.example.studentmanagement.service;
-
-import com.example.studentmanagement.dto.MentorDTO;
-import com.example.studentmanagement.mapper.MentorMapper;
-import com.example.studentmanagement.model.Mentor;
-import com.example.studentmanagement.repository.MentorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Service
-public class MentorService {
-    @Autowired
-    private MentorRepository mentorRepository;
-
-    @Autowired
-    private MentorMapper mentorMapper;
-
-    public MentorDTO createMentor(MentorDTO mentorDTO) {
-        Mentor mentor = mentorMapper.mentorDTOToMentor(mentorDTO);
-        mentor = mentorRepository.save(mentor);
-        return mentorMapper.mentorToMentorDTO(mentor);
-    }
-
-    public MentorDTO getMentorById(Long id) {
-        Mentor mentor = mentorRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Mentor not found"));
-        return mentorMapper.mentorToMentorDTO(mentor);
-    }
-
-    public List<MentorDTO> getAllMentors() {
-        return mentorRepository.findAll().stream()
-            .map(mentorMapper::mentorToMentorDTO)
-            .collect(Collectors.toList());
-    }
-
-    public MentorDTO updateMentor(Long id, MentorDTO mentorDTO) {
-        Mentor mentor = mentorRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Mentor not found"));
-        // Update mentor fields
-        mentor = mentorRepository.save(mentor);
-        return mentorMapper.mentorToMentorDTO(mentor);
-    }
-
-    public void deleteMentor(Long id) {
-        Mentor mentor = mentorRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Mentor not found"));
-        mentorRepository.delete(mentor);
-    }
-}
-
----
-File: src/main/java/com/example/studentmanagement/exception/ResourceNotFoundException.java
+File: src/main/java/com/example/studentmanagement/exception/ValidationException.java
 ---
 package com.example.studentmanagement.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class ResourceNotFoundException extends RuntimeException {
-    public ResourceNotFoundException(String message) {
+public class ValidationException extends RuntimeException {
+    public ValidationException(String message) {
         super(message);
     }
 }
@@ -593,22 +250,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import javax.validation.ValidationException;
-
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
     @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<?> handleValidationException(ValidationException ex) {
+    public ResponseEntity<String> handleValidationException(ValidationException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
-
-    // Add more exception handlers as needed
 }
 
 ---
@@ -624,76 +272,41 @@ spring.jpa.show-sql=true
 ---
 File: pom.xml
 ---
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
+<dependencies>
+    <dependency>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.5.5</version>
-        <relativePath/>
-    </parent>
-    <groupId>com.example</groupId>
-    <artifactId>studentmanagement</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>studentmanagement</name>
-    <description>Student Management System</description>
-    <properties>
-        <java.version>11</java.version>
-    </properties>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-boot-starter</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-            <version>1.4.2.Final</version>
-        </dependency>
-    </dependencies>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>io.springfox</groupId>
+        <artifactId>springfox-boot-starter</artifactId>
+        <version>3.0.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.20</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+"""
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>11</source>
-                    <target>11</target>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.mapstruct</groupId>
-                            <artifactId>mapstruct-processor</artifactId>
-                            <version>1.4.2.Final</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-</project>
+# Save this content to a text file
+file_path = '/mnt/data/student_management_project.txt'
+with open(file_path, 'w') as f:
+    f.write(project_files_content)
+
+file_path  # Return the path to the created file.
