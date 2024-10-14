@@ -1,318 +1,43 @@
-// pom.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.3</version>
-        <relativePath/>
-    </parent>
-    <groupId>com.example</groupId>
-    <artifactId>student-management</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>student-management</name>
-    <description>Student Management System</description>
-    <properties>
-        <java.version>11</java.version>
-    </properties>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-boot-starter</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-</project>
-
-// src/main/resources/application.properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/student_management
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-
-spring.mvc.pathmatch.matching-strategy=ant_path_matcher
-
-// src/main/java/com/example/studentmanagement/model/Student.java
-package com.example.studentmanagement.model;
-
-import lombok.Data;
-import javax.persistence.*;
-import javax.validation.constraints.*;
-import java.time.LocalDate;
-import java.util.List;
-
-@Data
-@Entity
-public class Student {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotBlank(message = "First name is required")
-    private String firstName;
-
-    @NotBlank(message = "Last name is required")
-    private String lastName;
-
-    @NotNull(message = "Date of birth is required")
-    private LocalDate dateOfBirth;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @Size(min = 6, max = 6, message = "Student must have exactly 6 subjects")
-    private List<Subject> subjects;
-
-    @ManyToOne
-    @JoinColumn(name = "elective_subject_id")
-    private Subject electiveSubject;
-
-    @ManyToOne
-    @JoinColumn(name = "mentor_id")
-    private Mentor mentor;
-
-    @AssertTrue(message = "Age must be between 4 and 30 years")
-    public boolean isAgeValid() {
-        if (dateOfBirth == null) {
-            return false;
-        }
-        int age = LocalDate.now().getYear() - dateOfBirth.getYear();
-        return age >= 4 && age <= 30;
-    }
-}
-
-// src/main/java/com/example/studentmanagement/model/Subject.java
-package com.example.studentmanagement.model;
-
-import lombok.Data;
-import javax.persistence.*;
-import javax.validation.constraints.*;
-
-@Data
-@Entity
-public class Subject {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotNull(message = "Subject code is required")
-    @Pattern(regexp = "\\d{6}", message = "Subject code must be a 6-digit number")
-    private String subjectCode;
-
-    @NotBlank(message = "Subject name is required")
-    @Size(max = 30, message = "Subject name must not exceed 30 characters")
-    private String subjectName;
-}
-
-// src/main/java/com/example/studentmanagement/model/Mentor.java
-package com.example.studentmanagement.model;
-
-import lombok.Data;
-import javax.persistence.*;
-import javax.validation.constraints.*;
-
-@Data
-@Entity
-public class Mentor {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotBlank(message = "Mentor name is required")
-    @Column(unique = true)
-    private String name;
-
-    @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
-    private String phoneNumber;
-}
-
-// src/main/java/com/example/studentmanagement/repository/StudentRepository.java
-package com.example.studentmanagement.repository;
-
-import com.example.studentmanagement.model.Student;
-import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.Optional;
-
-public interface StudentRepository extends JpaRepository<Student, Long> {
-    Optional<Student> findByFirstNameAndLastName(String firstName, String lastName);
-}
-
-// src/main/java/com/example/studentmanagement/repository/SubjectRepository.java
-package com.example.studentmanagement.repository;
-
-import com.example.studentmanagement.model.Subject;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface SubjectRepository extends JpaRepository<Subject, Long> {
-}
-
-// src/main/java/com/example/studentmanagement/repository/MentorRepository.java
-package com.example.studentmanagement.repository;
-
-import com.example.studentmanagement.model.Mentor;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface MentorRepository extends JpaRepository<Mentor, Long> {
-}
-
-// src/main/java/com/example/studentmanagement/service/StudentService.java
-package com.example.studentmanagement.service;
-
-import com.example.studentmanagement.model.Student;
-import com.example.studentmanagement.model.Subject;
-import com.example.studentmanagement.repository.StudentRepository;
-import com.example.studentmanagement.repository.SubjectRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import javax.persistence.EntityNotFoundException;
-import java.util.List;
-import java.util.Optional;
-
-@Service
-public class StudentService {
-
-    @Autowired
-    private StudentRepository studentRepository;
-
-    @Autowired
-    private SubjectRepository subjectRepository;
-
-    public List<Subject> getSubjectsByStudentId(Long studentId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found with id: " + studentId));
-        return student.getSubjects();
-    }
-
-    public List<Subject> getSubjectsByStudentName(String firstName, String lastName) {
-        Student student = studentRepository.findByFirstNameAndLastName(firstName, lastName)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found with name: " + firstName + " " + lastName));
-        return student.getSubjects();
-    }
-
-    public Subject getElectiveSubjectByStudentId(Long studentId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found with id: " + studentId));
-        return student.getElectiveSubject();
-    }
-
-    public Student saveStudent(Student student) {
-        return studentRepository.save(student);
-    }
-}
-
-// src/main/java/com/example/studentmanagement/controller/StudentController.java
-package com.example.studentmanagement.controller;
-
-import com.example.studentmanagement.model.Student;
-import com.example.studentmanagement.model.Subject;
-import com.example.studentmanagement.service.StudentService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/students")
-@Api(tags = "Student Management")
-public class StudentController {
-
-    @Autowired
-    private StudentService studentService;
-
-    @GetMapping("/{studentId}/subjects")
-    @ApiOperation("Get subjects by student ID")
-    public ResponseEntity<List<Subject>> getSubjectsByStudentId(@PathVariable Long studentId) {
-        return ResponseEntity.ok(studentService.getSubjectsByStudentId(studentId));
-    }
-
-    @GetMapping("/subjects")
-    @ApiOperation("Get subjects by student name")
-    public ResponseEntity<List<Subject>> getSubjectsByStudentName(@RequestParam String firstName, @RequestParam String lastName) {
-        return ResponseEntity.ok(studentService.getSubjectsByStudentName(firstName, lastName));
-    }
-
-    @GetMapping("/{studentId}/elective")
-    @ApiOperation("Get elective subject by student ID")
-    public ResponseEntity<Subject> getElectiveSubjectByStudentId(@PathVariable Long studentId) {
-        return ResponseEntity.ok(studentService.getElectiveSubjectByStudentId(studentId));
-    }
-
-    @PostMapping
-    @ApiOperation("Create a new student")
-    public ResponseEntity<Student> createStudent(@Valid @RequestBody Student student) {
-        return ResponseEntity.ok(studentService.saveStudent(student));
-    }
-}
-
-// src/main/java/com/example/studentmanagement/config/SwaggerConfig.java
-package com.example.studentmanagement.config;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-
-@Configuration
-public class SwaggerConfig {
-    @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("com.example.studentmanagement.controller"))
-                .paths(PathSelectors.any())
-                .build();
-    }
-}
-
-// src/main/java/com/example/studentmanagement/StudentManagementApplication.java
-package com.example.studentmanagement;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class StudentManagementApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(StudentManagementApplication.class, args);
-    }
+@RestController  
+@RequestMapping("/api/students")  
+public class StudentController {  
+   
+  @Autowired  
+  private StudentService studentService;  
+   
+  @GetMapping  
+  public List<Student> getAllStudents() {  
+   return studentService.getAllStudents();  
+  }  
+   
+  @GetMapping("/{id}")  
+  public Student getStudentById(@PathVariable Long id) {  
+   return studentService.getStudentById(id);  
+  }  
+   
+  @GetMapping("/by-name/{firstName}/{lastName}")  
+  public Student getStudentByFullName(@PathVariable String firstName, @PathVariable String lastName) {  
+   return studentService.getStudentByFullName(firstName, lastName);  
+  }  
+   
+  @GetMapping("/elective-subject/{studentId}")  
+  public Subject getElectiveSubject(@PathVariable Long studentId) {  
+   return studentService.getElectiveSubject(studentId);  
+  }  
+   
+  @PostMapping("/assign-mentor")  
+  public void assignMentor(@RequestBody AssignMentorRequest request) {  
+   studentService.assignMentor(request.getStudentId(), request.getMentorId());  
+  }  
+   
+  @PostMapping("/add-subject")  
+  public void addSubject(@RequestBody AddSubjectRequest request) {  
+   studentService.addSubject(request.getStudentId(), request.getSubjectId());  
+  }  
+   
+  @PostMapping  
+  public void createStudent(@RequestBody Student student) {  
+   studentService.validateStudent(student);  
+   studentService.save(student);  
+  }  
 }
