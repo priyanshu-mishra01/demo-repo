@@ -49,6 +49,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/students")
 public class StudentController {
@@ -65,7 +67,123 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudentById(id));
     }
 
-    // Add other endpoints as needed
+    @GetMapping
+    public ResponseEntity<List<StudentDTO>> getAllStudents() {
+        return ResponseEntity.ok(studentService.getAllStudents());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<StudentDTO> updateStudent(@PathVariable Long id, @RequestBody StudentDTO studentDTO) {
+        return ResponseEntity.ok(studentService.updateStudent(id, studentDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
+        studentService.deleteStudent(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/subjects")
+    public ResponseEntity<List<String>> getStudentSubjects(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentSubjects(id));
+    }
+
+    @GetMapping("/{id}/elective")
+    public ResponseEntity<String> getStudentElectiveSubject(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentElectiveSubject(id));
+    }
+}
+
+---
+File: src/main/java/com/example/studentmanagement/controller/SubjectController.java
+---
+package com.example.studentmanagement.controller;
+
+import com.example.studentmanagement.dto.SubjectDTO;
+import com.example.studentmanagement.service.SubjectService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/subjects")
+public class SubjectController {
+    @Autowired
+    private SubjectService subjectService;
+
+    @PostMapping
+    public ResponseEntity<SubjectDTO> createSubject(@RequestBody SubjectDTO subjectDTO) {
+        return ResponseEntity.ok(subjectService.createSubject(subjectDTO));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SubjectDTO> getSubject(@PathVariable Long id) {
+        return ResponseEntity.ok(subjectService.getSubjectById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<SubjectDTO>> getAllSubjects() {
+        return ResponseEntity.ok(subjectService.getAllSubjects());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<SubjectDTO> updateSubject(@PathVariable Long id, @RequestBody SubjectDTO subjectDTO) {
+        return ResponseEntity.ok(subjectService.updateSubject(id, subjectDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSubject(@PathVariable Long id) {
+        subjectService.deleteSubject(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+---
+File: src/main/java/com/example/studentmanagement/controller/MentorController.java
+---
+package com.example.studentmanagement.controller;
+
+import com.example.studentmanagement.dto.MentorDTO;
+import com.example.studentmanagement.service.MentorService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/mentors")
+public class MentorController {
+    @Autowired
+    private MentorService mentorService;
+
+    @PostMapping
+    public ResponseEntity<MentorDTO> createMentor(@RequestBody MentorDTO mentorDTO) {
+        return ResponseEntity.ok(mentorService.createMentor(mentorDTO));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MentorDTO> getMentor(@PathVariable Long id) {
+        return ResponseEntity.ok(mentorService.getMentorById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<MentorDTO>> getAllMentors() {
+        return ResponseEntity.ok(mentorService.getAllMentors());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MentorDTO> updateMentor(@PathVariable Long id, @RequestBody MentorDTO mentorDTO) {
+        return ResponseEntity.ok(mentorService.updateMentor(id, mentorDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteMentor(@PathVariable Long id) {
+        mentorService.deleteMentor(id);
+        return ResponseEntity.noContent().build();
+    }
 }
 
 ---
@@ -84,6 +202,32 @@ public class StudentDTO {
     private List<String> subjectNames;
     private String electiveSubjectName;
     private String mentorName;
+
+    // Getters and setters
+}
+
+---
+File: src/main/java/com/example/studentmanagement/dto/SubjectDTO.java
+---
+package com.example.studentmanagement.dto;
+
+public class SubjectDTO {
+    private Long id;
+    private String subjectCode;
+    private String subjectName;
+
+    // Getters and setters
+}
+
+---
+File: src/main/java/com/example/studentmanagement/dto/MentorDTO.java
+---
+package com.example.studentmanagement.dto;
+
+public class MentorDTO {
+    private Long id;
+    private String name;
+    private String phoneNumber;
 
     // Getters and setters
 }
@@ -109,6 +253,36 @@ public interface StudentMapper {
     @Mapping(target = "electiveSubject", ignore = true)
     @Mapping(target = "mentor", ignore = true)
     Student studentDTOToStudent(StudentDTO studentDTO);
+}
+
+---
+File: src/main/java/com/example/studentmanagement/mapper/SubjectMapper.java
+---
+package com.example.studentmanagement.mapper;
+
+import com.example.studentmanagement.dto.SubjectDTO;
+import com.example.studentmanagement.model.Subject;
+import org.mapstruct.Mapper;
+
+@Mapper(componentModel = "spring")
+public interface SubjectMapper {
+    SubjectDTO subjectToSubjectDTO(Subject subject);
+    Subject subjectDTOToSubject(SubjectDTO subjectDTO);
+}
+
+---
+File: src/main/java/com/example/studentmanagement/mapper/MentorMapper.java
+---
+package com.example.studentmanagement.mapper;
+
+import com.example.studentmanagement.dto.MentorDTO;
+import com.example.studentmanagement.model.Mentor;
+import org.mapstruct.Mapper;
+
+@Mapper(componentModel = "spring")
+public interface MentorMapper {
+    MentorDTO mentorToMentorDTO(Mentor mentor);
+    Mentor mentorDTOToMentor(MentorDTO mentorDTO);
 }
 
 ---
@@ -145,6 +319,7 @@ public class Student {
         joinColumns = @JoinColumn(name = "student_id"),
         inverseJoinColumns = @JoinColumn(name = "subject_id")
     )
+    @Size(max = 6)
     private Set<Subject> subjects;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -243,41 +418,26 @@ public interface MentorRepository extends JpaRepository<Mentor, Long> {
 }
 
 ---
-File: src/main/java/com/example/studentmanagement/service/StudentService.java
+File: src/main/java/com/example/studentmanagement/service/StudentService.java (continued)
 ---
-package com.example.studentmanagement.service;
-
-import com.example.studentmanagement.dto.StudentDTO;
-import com.example.studentmanagement.mapper.StudentMapper;
-import com.example.studentmanagement.model.Student;
-import com.example.studentmanagement.repository.StudentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import javax.validation.ValidationException;
-import java.time.LocalDate;
-import java.time.Period;
-
-@Service
-public class StudentService {
-    @Autowired
-    private StudentRepository studentRepository;
-
-    @Autowired
-    private StudentMapper studentMapper;
-
-    public StudentDTO createStudent(StudentDTO studentDTO) {
-        Student student = studentMapper.studentDTOToStudent(studentDTO);
-        validateAge(student.getDateOfBirth());
-        validateUniqueFullName(student);
-        student = studentRepository.save(student);
-        return studentMapper.studentToStudentDTO(student);
-    }
-
-    public StudentDTO getStudentById(Long id) {
+    public void deleteStudent(Long id) {
         Student student = studentRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-        return studentMapper.studentToStudentDTO(student);
+        studentRepository.delete(student);
+    }
+
+    public List<String> getStudentSubjects(Long id) {
+        Student student = studentRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        return student.getSubjects().stream()
+            .map(Subject::getSubjectName)
+            .collect(Collectors.toList());
+    }
+
+    public String getStudentElectiveSubject(Long id) {
+        Student student = studentRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        return student.getElectiveSubject() != null ? student.getElectiveSubject().getSubjectName() : null;
     }
 
     private void validateAge(LocalDate dateOfBirth) {
@@ -294,6 +454,161 @@ public class StudentService {
             throw new ValidationException("A student with this full name already exists");
         }
     }
+}
+
+---
+File: src/main/java/com/example/studentmanagement/service/SubjectService.java
+---
+package com.example.studentmanagement.service;
+
+import com.example.studentmanagement.dto.SubjectDTO;
+import com.example.studentmanagement.mapper.SubjectMapper;
+import com.example.studentmanagement.model.Subject;
+import com.example.studentmanagement.repository.SubjectRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class SubjectService {
+    @Autowired
+    private SubjectRepository subjectRepository;
+
+    @Autowired
+    private SubjectMapper subjectMapper;
+
+    public SubjectDTO createSubject(SubjectDTO subjectDTO) {
+        Subject subject = subjectMapper.subjectDTOToSubject(subjectDTO);
+        subject = subjectRepository.save(subject);
+        return subjectMapper.subjectToSubjectDTO(subject);
+    }
+
+    public SubjectDTO getSubjectById(Long id) {
+        Subject subject = subjectRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        return subjectMapper.subjectToSubjectDTO(subject);
+    }
+
+    public List<SubjectDTO> getAllSubjects() {
+        return subjectRepository.findAll().stream()
+            .map(subjectMapper::subjectToSubjectDTO)
+            .collect(Collectors.toList());
+    }
+
+    public SubjectDTO updateSubject(Long id, SubjectDTO subjectDTO) {
+        Subject subject = subjectRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        // Update subject fields
+        subject = subjectRepository.save(subject);
+        return subjectMapper.subjectToSubjectDTO(subject);
+    }
+
+    public void deleteSubject(Long id) {
+        Subject subject = subjectRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        subjectRepository.delete(subject);
+    }
+}
+
+---
+File: src/main/java/com/example/studentmanagement/service/MentorService.java
+---
+package com.example.studentmanagement.service;
+
+import com.example.studentmanagement.dto.MentorDTO;
+import com.example.studentmanagement.mapper.MentorMapper;
+import com.example.studentmanagement.model.Mentor;
+import com.example.studentmanagement.repository.MentorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class MentorService {
+    @Autowired
+    private MentorRepository mentorRepository;
+
+    @Autowired
+    private MentorMapper mentorMapper;
+
+    public MentorDTO createMentor(MentorDTO mentorDTO) {
+        Mentor mentor = mentorMapper.mentorDTOToMentor(mentorDTO);
+        mentor = mentorRepository.save(mentor);
+        return mentorMapper.mentorToMentorDTO(mentor);
+    }
+
+    public MentorDTO getMentorById(Long id) {
+        Mentor mentor = mentorRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Mentor not found"));
+        return mentorMapper.mentorToMentorDTO(mentor);
+    }
+
+    public List<MentorDTO> getAllMentors() {
+        return mentorRepository.findAll().stream()
+            .map(mentorMapper::mentorToMentorDTO)
+            .collect(Collectors.toList());
+    }
+
+    public MentorDTO updateMentor(Long id, MentorDTO mentorDTO) {
+        Mentor mentor = mentorRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Mentor not found"));
+        // Update mentor fields
+        mentor = mentorRepository.save(mentor);
+        return mentorMapper.mentorToMentorDTO(mentor);
+    }
+
+    public void deleteMentor(Long id) {
+        Mentor mentor = mentorRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Mentor not found"));
+        mentorRepository.delete(mentor);
+    }
+}
+
+---
+File: src/main/java/com/example/studentmanagement/exception/ResourceNotFoundException.java
+---
+package com.example.studentmanagement.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}
+
+---
+File: src/main/java/com/example/studentmanagement/exception/GlobalExceptionHandler.java
+---
+package com.example.studentmanagement.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import javax.validation.ValidationException;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<?> handleValidationException(ValidationException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    // Add more exception handlers as needed
 }
 
 ---
