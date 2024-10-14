@@ -1,0 +1,384 @@
+File: src/main/java/com/example/studentmanagement/StudentManagementApplication.java
+---
+package com.example.studentmanagement;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class StudentManagementApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(StudentManagementApplication.class, args);
+    }
+}
+
+---
+File: src/main/java/com/example/studentmanagement/config/SwaggerConfig.java
+---
+package com.example.studentmanagement.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+    @Bean
+    public Docket api() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("com.example.studentmanagement.controller"))
+                .paths(PathSelectors.any())
+                .build();
+    }
+}
+
+---
+File: src/main/java/com/example/studentmanagement/controller/StudentController.java
+---
+package com.example.studentmanagement.controller;
+
+import com.example.studentmanagement.dto.StudentDTO;
+import com.example.studentmanagement.service.StudentService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/students")
+public class StudentController {
+    @Autowired
+    private StudentService studentService;
+
+    @PostMapping
+    public ResponseEntity<StudentDTO> createStudent(@RequestBody StudentDTO studentDTO) {
+        return ResponseEntity.ok(studentService.createStudent(studentDTO));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<StudentDTO> getStudent(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentById(id));
+    }
+
+    // Add other endpoints as needed
+}
+
+---
+File: src/main/java/com/example/studentmanagement/dto/StudentDTO.java
+---
+package com.example.studentmanagement.dto;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public class StudentDTO {
+    private Long id;
+    private String firstName;
+    private String lastName;
+    private LocalDate dateOfBirth;
+    private List<String> subjectNames;
+    private String electiveSubjectName;
+    private String mentorName;
+
+    // Getters and setters
+}
+
+---
+File: src/main/java/com/example/studentmanagement/mapper/StudentMapper.java
+---
+package com.example.studentmanagement.mapper;
+
+import com.example.studentmanagement.dto.StudentDTO;
+import com.example.studentmanagement.model.Student;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+@Mapper(componentModel = "spring")
+public interface StudentMapper {
+    @Mapping(target = "subjectNames", expression = "java(student.getSubjects().stream().map(Subject::getSubjectName).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "electiveSubjectName", source = "electiveSubject.subjectName")
+    @Mapping(target = "mentorName", source = "mentor.name")
+    StudentDTO studentToStudentDTO(Student student);
+
+    @Mapping(target = "subjects", ignore = true)
+    @Mapping(target = "electiveSubject", ignore = true)
+    @Mapping(target = "mentor", ignore = true)
+    Student studentDTOToStudent(StudentDTO studentDTO);
+}
+
+---
+File: src/main/java/com/example/studentmanagement/model/Student.java
+---
+package com.example.studentmanagement.model;
+
+import javax.persistence.*;
+import javax.validation.constraints.*;
+import java.time.LocalDate;
+import java.util.Set;
+
+@Entity
+public class Student {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank
+    @Size(max = 30)
+    private String firstName;
+
+    @NotBlank
+    @Size(max = 30)
+    private String lastName;
+
+    @NotNull
+    @Past
+    private LocalDate dateOfBirth;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "student_subjects",
+        joinColumns = @JoinColumn(name = "student_id"),
+        inverseJoinColumns = @JoinColumn(name = "subject_id")
+    )
+    private Set<Subject> subjects;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "elective_subject_id")
+    private Subject electiveSubject;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mentor_id")
+    private Mentor mentor;
+
+    // Getters and setters
+}
+
+---
+File: src/main/java/com/example/studentmanagement/model/Subject.java
+---
+package com.example.studentmanagement.model;
+
+import javax.persistence.*;
+import javax.validation.constraints.*;
+
+@Entity
+public class Subject {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotNull
+    @Pattern(regexp = "\\d{6}", message = "Subject code must be a 6-digit number")
+    private String subjectCode;
+
+    @NotBlank
+    @Size(max = 30, message = "Subject name must not exceed 30 characters")
+    private String subjectName;
+
+    // Getters and setters
+}
+
+---
+File: src/main/java/com/example/studentmanagement/model/Mentor.java
+---
+package com.example.studentmanagement.model;
+
+import javax.persistence.*;
+import javax.validation.constraints.*;
+
+@Entity
+public class Mentor {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank
+    @Column(unique = true)
+    private String name;
+
+    @NotBlank
+    @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
+    private String phoneNumber;
+
+    // Getters and setters
+}
+
+---
+File: src/main/java/com/example/studentmanagement/repository/StudentRepository.java
+---
+package com.example.studentmanagement.repository;
+
+import com.example.studentmanagement.model.Student;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface StudentRepository extends JpaRepository<Student, Long> {
+    Student findByFirstNameAndLastName(String firstName, String lastName);
+}
+
+---
+File: src/main/java/com/example/studentmanagement/repository/SubjectRepository.java
+---
+package com.example.studentmanagement.repository;
+
+import com.example.studentmanagement.model.Subject;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SubjectRepository extends JpaRepository<Subject, Long> {
+}
+
+---
+File: src/main/java/com/example/studentmanagement/repository/MentorRepository.java
+---
+package com.example.studentmanagement.repository;
+
+import com.example.studentmanagement.model.Mentor;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface MentorRepository extends JpaRepository<Mentor, Long> {
+}
+
+---
+File: src/main/java/com/example/studentmanagement/service/StudentService.java
+---
+package com.example.studentmanagement.service;
+
+import com.example.studentmanagement.dto.StudentDTO;
+import com.example.studentmanagement.mapper.StudentMapper;
+import com.example.studentmanagement.model.Student;
+import com.example.studentmanagement.repository.StudentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.validation.ValidationException;
+import java.time.LocalDate;
+import java.time.Period;
+
+@Service
+public class StudentService {
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private StudentMapper studentMapper;
+
+    public StudentDTO createStudent(StudentDTO studentDTO) {
+        Student student = studentMapper.studentDTOToStudent(studentDTO);
+        validateAge(student.getDateOfBirth());
+        validateUniqueFullName(student);
+        student = studentRepository.save(student);
+        return studentMapper.studentToStudentDTO(student);
+    }
+
+    public StudentDTO getStudentById(Long id) {
+        Student student = studentRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        return studentMapper.studentToStudentDTO(student);
+    }
+
+    private void validateAge(LocalDate dateOfBirth) {
+        int age = Period.between(dateOfBirth, LocalDate.now()).getYears();
+        if (age < 4 || age > 30) {
+            throw new ValidationException("Student age must be between 4 and 30 years");
+        }
+    }
+
+    private void validateUniqueFullName(Student student) {
+        Student existingStudent = studentRepository.findByFirstNameAndLastName(
+            student.getFirstName(), student.getLastName());
+        if (existingStudent != null && !existingStudent.getId().equals(student.getId())) {
+            throw new ValidationException("A student with this full name already exists");
+        }
+    }
+}
+
+---
+File: src/main/resources/application.properties
+---
+spring.datasource.url=jdbc:postgresql://localhost:5432/studentdb
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+---
+File: pom.xml
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.5.5</version>
+        <relativePath/>
+    </parent>
+    <groupId>com.example</groupId>
+    <artifactId>studentmanagement</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>studentmanagement</name>
+    <description>Student Management System</description>
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-boot-starter</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.4.2.Final</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.4.2.Final</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
